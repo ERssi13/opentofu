@@ -1,0 +1,33 @@
+#cloud-config
+package_update: true
+packages:
+  - nginx
+
+write_files:
+  - path: /usr/local/bin/configure-nimbus.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -eu
+
+      hostnamectl set-hostname "${hostname}"
+
+      cat > /var/www/html/index.html <<'HTML'
+      <!doctype html>
+      <html lang="fr">
+      <head><meta charset="utf-8"><title>NimbusShop</title></head>
+      <body>
+        <h1>NimbusShop</h1>
+        <p>Serveur : __HOSTNAME__</p>
+      </body>
+      </html>
+      HTML
+      sed -i "s/__HOSTNAME__/$(hostname)/g" /var/www/html/index.html
+
+      cat > /var/www/html/sante <<'HTML'
+      OK-nimbus
+      HTML
+
+runcmd:
+  - /usr/local/bin/configure-nimbus.sh
+  - systemctl enable --now nginx
